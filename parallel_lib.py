@@ -2,7 +2,6 @@ __author__ = 'joe'
 from collections import defaultdict
 import random
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp1d
 
 
 class ParallelPlot(object):
@@ -113,21 +112,22 @@ class DummyBar(object):
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
 
                 x_pair, y_pair = (self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y)
-                i = -0.5
-                step = 0.05
+                i = -0.25
+                step = 0.025
                 new_x_pair = x_pair
                 new_y_pair = y_pair
-                while (new_x_pair, new_y_pair) in has_occured:
+                while (new_x_pair, new_y_pair) in has_occured and not any(
+                        (y_val < 0.0 or y_val > 1.0) for y_val in new_y_pair):
                     new_x_pair = (x_pair[0], (x_pair[0] + x_pair[1]) / 2.0, x_pair[1])
                     new_y_pair = (y_pair[0], ((y_pair[0] + y_pair[1]) / 2.0) + i, y_pair[1])
                     i = i + step
                 has_occured.append((new_x_pair, new_y_pair))
-                if new_y_pair[1]>1.0:
-                    surface.set_ylim([surface.get_ylim()[0],new_y_pair[1]+0.05])
-                elif new_y_pair[0]<0.0:
-                    surface.set_ylim([new_y_pair[1]-0.05,surface.get_ylim()[1]])
+                # if new_y_pair[1] > 1.0:
+                #     surface.set_ylim([surface.get_ylim()[0], new_y_pair[1] + 0.05])
+                # elif new_y_pair[0] < 0.0:
+                #     surface.set_ylim([new_y_pair[1] - 0.05, surface.get_ylim()[1]])
                 surface.plot(new_x_pair, new_y_pair, c=color,
-                             linewidth=0.5)
+                             linewidth=1)
 
     def draw_labels(self, surface):
         pass
@@ -174,7 +174,7 @@ class DiscreteBar(object):
         return self.y_min + (self.y_max - self.y_min) * val
 
     def draw(self, surface):
-        has_occured=[]
+        has_occured = []
         surface.axvline(self.x_loc, self.y_min, self.y_max, c='black')
         self.draw_labels(surface)
         for linked_bar in self.link_to_values:
@@ -188,17 +188,18 @@ class DiscreteBar(object):
                 step = 0.025
                 new_x_pair = x_pair
                 new_y_pair = y_pair
-                while (new_x_pair, new_y_pair) in has_occured:
+                while (new_x_pair, new_y_pair) in has_occured and not any(
+                        (y_val < 0.0 or y_val > 1.0) for y_val in new_y_pair):
                     new_x_pair = (x_pair[0], (x_pair[0] + x_pair[1]) / 2.0, x_pair[1])
                     new_y_pair = (y_pair[0], ((y_pair[0] + y_pair[1]) / 2.0) + i, y_pair[1])
                     i = i + step
                 has_occured.append((new_x_pair, new_y_pair))
-                if new_y_pair[1]>1.0:
-                    surface.set_ylim([surface.get_ylim()[0],new_y_pair[1]+0.05])
-                elif new_y_pair[0]<0.0:
-                    surface.set_ylim([new_y_pair[1]-0.05,surface.get_ylim()[1]])
+                # if new_y_pair[1] > 1.0:
+                #     surface.set_ylim([surface.get_ylim()[0], new_y_pair[1] + 0.05])
+                # elif new_y_pair[1] < 0.0:
+                #     surface.set_ylim([new_y_pair[1] - 0.05, surface.get_ylim()[1]])
                 surface.plot(new_x_pair, new_y_pair, c=color,
-                             linewidth=0.5)
+                             linewidth=1)
 
     def draw_labels(self, surface):
         surface.text(self.x_loc * (.975 + 1) / 2, self.y_max + 0.035, self.name, fontsize=10)
@@ -254,7 +255,7 @@ class ContinuousBar(object):
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
                 surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color,
-                             linewidth=0.5)
+                             linewidth=1)
 
     def draw_labels(self, surface):
         surface.text(self.x_loc * (.975 + 1) / 2, self.y_max + 0.035, self.name, fontsize=10)
@@ -269,7 +270,7 @@ if __name__ == "__main__":
         'Issue Code': ['Quality Control', 'Production Planning', 'Rental', 'Shipping'],
         'Cost': [0.0, 25000.00]
     }
-    n = 50
+    n = 1000
     link_dictionary = {
         'Issue Type': [random.choice(plot_dictionary['Issue Type']) for _ in range(n)],
         'Disposition': [random.choice(plot_dictionary['Disposition']) for _ in range(n)],
