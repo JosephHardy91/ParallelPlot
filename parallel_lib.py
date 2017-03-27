@@ -45,6 +45,8 @@ class ParallelPlot(object):
 
     def draw(self, output_file, row_pad=0.05, col_pad=0.05):
         fig, ax = plt.subplots()
+        fig.patch.set_visible(False)
+        ax.axis('off')
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         ax.set_xlim([0.0, 1.0])
@@ -66,6 +68,7 @@ class ParallelPlot(object):
         for row in self.cols[-1]:
             ax.axvline(row.x_loc, row.y_min, row.y_max, c='black')
             row.draw_labels(ax)
+        plt.savefig(output_file)
         plt.show()
 
 
@@ -164,7 +167,7 @@ class DiscreteBar(object):
                 surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
 
     def draw_labels(self, surface):
-        surface.text(self.x_loc * (.975 + 1) / 2, self.val_to_y_loc(self.y_max) + 0.05, self.name, fontsize=10)
+        surface.text(self.x_loc * (.975 + 1) / 2, self.y_max + 0.035, self.name, fontsize=10)
         for val in self.values:
             surface.text(self.x_loc, self.val_to_y_loc(self.values[val]), val, fontsize=10)
 
@@ -220,9 +223,9 @@ class ContinuousBar(object):
                 surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
 
     def draw_labels(self, surface):
-        surface.text(self.x_loc * (.975 + 1) / 2, self.val_to_y_loc(self.y_max) + 0.05, self.name, fontsize=10)
-        surface.text(self.x_loc, self.val_to_y_loc(self.y_min), self.min_value, fontsize=10)
-        surface.text(self.x_loc, self.val_to_y_loc(self.y_max), self.max_value, fontsize=10)
+        surface.text(self.x_loc * (.975 + 1) / 2, self.y_max + 0.035, self.name, fontsize=10)
+        surface.text(self.x_loc, self.y_min, self.min_value, fontsize=10)
+        surface.text(self.x_loc, self.y_max, self.max_value, fontsize=10)
 
 
 if __name__ == "__main__":
@@ -232,24 +235,24 @@ if __name__ == "__main__":
         'Issue Code': ['Quality Control', 'Production Planning', 'Rental', 'Shipping'],
         'Cost': [0.0, 25000.00]
     }
-n = 50
-link_dictionary = {
-    'Issue Type': [random.choice(plot_dictionary['Issue Type']) for _ in range(n)],
-    'Disposition': [random.choice(plot_dictionary['Disposition']) for _ in range(n)],
-    'Issue Code': [random.choice(plot_dictionary['Issue Code']) for _ in range(n)],
-    'Cost': [random.uniform(plot_dictionary['Cost'][0], plot_dictionary['Cost'][1]) for _ in range(n)]
-}
+    n = 50
+    link_dictionary = {
+        'Issue Type': [random.choice(plot_dictionary['Issue Type']) for _ in range(n)],
+        'Disposition': [random.choice(plot_dictionary['Disposition']) for _ in range(n)],
+        'Issue Code': [random.choice(plot_dictionary['Issue Code']) for _ in range(n)],
+        'Cost': [random.uniform(plot_dictionary['Cost'][0], plot_dictionary['Cost'][1]) for _ in range(n)]
+    }
 
-pp = ParallelPlot(plot_dictionary)
-for col_n, row_n in zip(range(0, 4), [1, 2, 1, 1]):
-    pp.add_col(row_n)
+    pp = ParallelPlot(plot_dictionary)
+    for col_n, row_n in zip(range(0, 4), [1, 2, 1, 1]):
+        pp.add_col(row_n)
 
-pp.add_bar(0, 0, bar_type='discrete', bar_values='Issue Type')
-pp.add_bar(1, 0, bar_type='dummy')
-pp.add_bar(1, 1, bar_type='discrete', bar_values='Disposition')
-pp.add_bar(2, 0, bar_type='discrete', bar_values='Issue Code')
-pp.add_bar(3, 0, bar_type='continuous', bar_values='Cost')
+    pp.add_bar(0, 0, bar_type='discrete', bar_values='Issue Type')
+    pp.add_bar(1, 0, bar_type='dummy')
+    pp.add_bar(1, 1, bar_type='discrete', bar_values='Disposition')
+    pp.add_bar(2, 0, bar_type='discrete', bar_values='Issue Code')
+    pp.add_bar(3, 0, bar_type='continuous', bar_values='Cost')
 
-pp.link(link_dictionary)
+    pp.link(link_dictionary)
 
-pp.draw('')
+    pp.draw('pp.jpg')
