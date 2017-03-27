@@ -1,14 +1,8 @@
 __author__ = 'joe'
-from collections import Counter, defaultdict
-import sys, os
+from collections import defaultdict
 import random
-import math
 import matplotlib.pyplot as plt
 
-
-# from mpltools import style
-#
-# style.use('ggplot')
 
 
 class ParallelPlot(object):
@@ -63,7 +57,6 @@ class ParallelPlot(object):
                 y_loc = (row_pad * (row_n + 1)) + (row_size / 2.) + row_size * row_n
                 y_min = y_loc - (row_size / 2.)
                 y_max = y_loc + (row_size / 2.)
-                # print col_n,row_n,(x_loc, (y_loc, y_min, y_max)),y_val_pair
                 row.set_plot_info((x_loc, (y_loc, y_min, y_max)))
 
         for col_n, col in enumerate(self.cols[:-1]):
@@ -114,7 +107,6 @@ class DummyBar(object):
                 (this_y, link_y), color = y_val_pair
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
-                # print (self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), y_val_pair
                 surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
 
     def draw_labels(self, surface):
@@ -160,7 +152,6 @@ class DiscreteBar(object):
 
     def val_to_y_loc(self, val):
         return self.y_min + (self.y_max - self.y_min) * val
-        # return (val - self.y_min) / (self.y_max - self.y_min)
 
     def draw(self, surface):
         surface.axvline(self.x_loc, self.y_min, self.y_max, c='black')
@@ -170,7 +161,6 @@ class DiscreteBar(object):
                 (this_y, link_y), color = y_val_pair
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
-                # print (self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), y_val_pair
                 surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
 
     def draw_labels(self, surface):
@@ -217,7 +207,6 @@ class ContinuousBar(object):
 
     def val_to_y_loc(self, val):
         return self.y_min + (self.y_max - self.y_min) * val
-        # return (val - self.y_min) / (self.y_max - self.y_min)
 
     def draw(self, surface):
         surface.axvline(self.x_loc, self.y_min, self.y_max, c='black')
@@ -228,7 +217,6 @@ class ContinuousBar(object):
                 print list(color)
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
-                # print (self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), y_val_pair
                 surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
 
     def draw_labels(self, surface):
@@ -265,6 +253,3 @@ pp.add_bar(3, 0, bar_type='continuous', bar_values='Cost')
 pp.link(link_dictionary)
 
 pp.draw('')
-
-# print '\n'.join([str(l) for l in pp.cols])
-# print pp.cols
