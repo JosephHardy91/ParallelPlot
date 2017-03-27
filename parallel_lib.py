@@ -2,7 +2,7 @@ __author__ = 'joe'
 from collections import defaultdict
 import random
 import matplotlib.pyplot as plt
-
+from scipy.interpolate import interp1d
 
 
 class ParallelPlot(object):
@@ -86,14 +86,14 @@ class DummyBar(object):
     def link_to(self, link_to_bar, value_dictionary):
         self.link_to_bars[link_to_bar.name] = link_to_bar
         if isinstance(link_to_bar, DummyBar):
-            self.link_to_values[link_to_bar.name] = [((0.5, 0.5), 'black')
+            self.link_to_values[link_to_bar.name] = [((0.5, 0.5), 'grey')
                                                      for _ in range(value_dictionary[link_to_bar.name])]
         elif isinstance(link_to_bar, DiscreteBar):
-            self.link_to_values[link_to_bar.name] = [((0.5, link_to_bar.values[dis_val]), 'black')
+            self.link_to_values[link_to_bar.name] = [((0.5, link_to_bar.values[dis_val]), 'grey')
                                                      for dis_val in value_dictionary[link_to_bar.name]]
         elif isinstance(link_to_bar, ContinuousBar):
             self.link_to_values[link_to_bar.name] = [
-                ((0.5, link_to_bar.norm_value(con_val)), 'black') for con_val in
+                ((0.5, link_to_bar.norm_value(con_val)), 'grey') for con_val in
                 value_dictionary[link_to_bar.name]]
 
     def set_plot_info(self, coord_tup):
@@ -103,6 +103,7 @@ class DummyBar(object):
         return self.y_min + (self.y_max - self.y_min) * val
 
     def draw(self, surface):
+        has_occured = []
         surface.axvline(self.x_loc, self.y_min, self.y_max, c='black')
         self.draw_labels(surface)
         for linked_bar in self.link_to_values:
@@ -110,7 +111,23 @@ class DummyBar(object):
                 (this_y, link_y), color = y_val_pair
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
-                surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
+
+                x_pair, y_pair = (self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y)
+                i = -0.5
+                step = 0.05
+                new_x_pair = x_pair
+                new_y_pair = y_pair
+                while (new_x_pair, new_y_pair) in has_occured:
+                    new_x_pair = (x_pair[0], (x_pair[0] + x_pair[1]) / 2.0, x_pair[1])
+                    new_y_pair = (y_pair[0], ((y_pair[0] + y_pair[1]) / 2.0) + i, y_pair[1])
+                    i = i + step
+                has_occured.append((new_x_pair, new_y_pair))
+                if new_y_pair[1]>1.0:
+                    surface.set_ylim([surface.get_ylim()[0],new_y_pair[1]+0.05])
+                elif new_y_pair[0]<0.0:
+                    surface.set_ylim([new_y_pair[1]-0.05,surface.get_ylim()[1]])
+                surface.plot(new_x_pair, new_y_pair, c=color,
+                             linewidth=0.5)
 
     def draw_labels(self, surface):
         pass
@@ -157,6 +174,7 @@ class DiscreteBar(object):
         return self.y_min + (self.y_max - self.y_min) * val
 
     def draw(self, surface):
+        has_occured=[]
         surface.axvline(self.x_loc, self.y_min, self.y_max, c='black')
         self.draw_labels(surface)
         for linked_bar in self.link_to_values:
@@ -164,7 +182,23 @@ class DiscreteBar(object):
                 (this_y, link_y), color = y_val_pair
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
-                surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
+
+                x_pair, y_pair = (self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y)
+                i = -0.25
+                step = 0.025
+                new_x_pair = x_pair
+                new_y_pair = y_pair
+                while (new_x_pair, new_y_pair) in has_occured:
+                    new_x_pair = (x_pair[0], (x_pair[0] + x_pair[1]) / 2.0, x_pair[1])
+                    new_y_pair = (y_pair[0], ((y_pair[0] + y_pair[1]) / 2.0) + i, y_pair[1])
+                    i = i + step
+                has_occured.append((new_x_pair, new_y_pair))
+                if new_y_pair[1]>1.0:
+                    surface.set_ylim([surface.get_ylim()[0],new_y_pair[1]+0.05])
+                elif new_y_pair[0]<0.0:
+                    surface.set_ylim([new_y_pair[1]-0.05,surface.get_ylim()[1]])
+                surface.plot(new_x_pair, new_y_pair, c=color,
+                             linewidth=0.5)
 
     def draw_labels(self, surface):
         surface.text(self.x_loc * (.975 + 1) / 2, self.y_max + 0.035, self.name, fontsize=10)
@@ -217,10 +251,10 @@ class ContinuousBar(object):
         for linked_bar in self.link_to_values:
             for y_val_pair in self.link_to_values[linked_bar]:
                 (this_y, link_y), color = y_val_pair
-                print list(color)
                 this_y = self.val_to_y_loc(this_y)
                 link_y = self.link_to_bars[linked_bar].val_to_y_loc(link_y)
-                surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color)
+                surface.plot((self.x_loc, self.link_to_bars[linked_bar].x_loc), (this_y, link_y), c=color,
+                             linewidth=0.5)
 
     def draw_labels(self, surface):
         surface.text(self.x_loc * (.975 + 1) / 2, self.y_max + 0.035, self.name, fontsize=10)
